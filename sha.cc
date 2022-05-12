@@ -23,7 +23,17 @@ class BLOCKS{
         unsigned long W[64];
         std::string final_hash;
         std::string get_hex_string(unsigned long in);
+        unsigned long H0 = 0x6a09e667;
+        unsigned long H1 = 0xbb67ae85;
+        unsigned long H2 = 0x3c6ef372;
+        unsigned long H3 = 0xa54ff53a;
+        unsigned long H4 = 0x510e527f;
+        unsigned long H5 = 0x9b05688c;
+        unsigned long H6 = 0x1f83d9ab;
+        unsigned long H7 = 0x5be0cd19;
+
     public:
+        void print_hash_values();
         BLOCKS(std::string m);
         void add_padding();
         void resize();
@@ -44,6 +54,17 @@ std::string BLOCKS::get_hex_string(unsigned long in){
     sstream >> temp;
 
     return temp;
+}
+
+void BLOCKS::print_hash_values(){
+    std::cout<<"  H0 : "<<get_hex_string(H0)<<std::endl;
+    std::cout<<"  H1 : "<<get_hex_string(H1)<<std::endl;
+    std::cout<<"  H2 : "<<get_hex_string(H2)<<std::endl;
+    std::cout<<"  H3 : "<<get_hex_string(H3)<<std::endl;
+    std::cout<<"  H4 : "<<get_hex_string(H4)<<std::endl;
+    std::cout<<"  H5 : "<<get_hex_string(H5)<<std::endl;
+    std::cout<<"  H6 : "<<get_hex_string(H6)<<std::endl;
+    std::cout<<"  H7 : "<<get_hex_string(H7)<<std::endl;
 }
 
 BLOCKS::BLOCKS(std::string m){
@@ -124,15 +145,6 @@ void BLOCKS::compression(){
         0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
     };
 
-    unsigned long H0 = 0x6a09e667;
-    unsigned long H1 = 0xbb67ae85;
-    unsigned long H2 = 0x3c6ef372;
-    unsigned long H3 = 0xa54ff53a;
-    unsigned long H4 = 0x510e527f;
-    unsigned long H5 = 0x9b05688c;
-    unsigned long H6 = 0x1f83d9ab;
-    unsigned long H7 = 0x5be0cd19;
-
     unsigned long temp1;
     unsigned long temp2;
     unsigned long a = H0;
@@ -182,7 +194,7 @@ std::vector<unsigned long> BLOCKS::get_vector(){
 
 void BLOCKS::print_w(){
     for ( int i = 0; i< 64 ;i++){
-        std::cout<<std::bitset<32>(W[i])<<std::endl;
+        std::cout<<"  "<<std::bitset<32>(W[i])<<std::endl;
     }
 }
 
@@ -191,10 +203,47 @@ std::string BLOCKS::get_final_hash(){
 }
 
 int main(){
-    BLOCKS blocks("abcdbcdec");
+    std::cout<< " Enter the Message : "; std::string message; std::cin>>message;
+    BLOCKS blocks(message);
     blocks.add_padding();
+
+    std::cout<< "Blocks after Adding Padding and Appending the 64 bits of Length of the Message to the end : \n ";
+
+    int PADDING = 4;
+    for ( auto block : blocks.get_vector() ) {
+        if ( PADDING == 0 ) {
+            std::cout<< " \n " ;
+            PADDING = 4;
+        }
+        std::cout<<std::bitset<8>(block)<<" ";
+        PADDING--;
+    }
+
+    std::cin.ignore();
+    std::cin.get();
     blocks.resize();
+
+    std::cout<< "\nResizing all the 8bit blocks to 32bit for the Message Schedule W[64] Array : \n W[0 .. 15] := [ \n ";
+    PADDING = 2;
+    for ( auto block : blocks.get_vector() ) {
+        if ( PADDING == 0 ) {
+            std::cout<< " \n " ;
+            PADDING = 2;
+        }
+        std::cout<<std::bitset<32>(block)<<"  ";
+        PADDING--;
+    }; std::cout<<" ] \n";
+
+    std::cin.get();
     blocks.create_message_schedule();
+
+    std::cout<<"\nW[64] Array after the message Schedule: \n";
+    blocks.print_w();
+
+    std::cin.get();
     blocks.compression();
-    std::cout<<blocks.get_final_hash();
+    std::cout<<"\n Hash Values after compression : \n";
+    blocks.print_hash_values();
+    std::cin.get();
+    std::cout<<"\n Final Hash : "<< blocks.get_final_hash();
 }
